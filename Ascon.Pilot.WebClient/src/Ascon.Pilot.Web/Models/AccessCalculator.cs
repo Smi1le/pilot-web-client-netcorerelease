@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using Ascon.Pilot.DataClasses;
+using System.Linq;
 
 namespace Ascon.Pilot.Core
 {

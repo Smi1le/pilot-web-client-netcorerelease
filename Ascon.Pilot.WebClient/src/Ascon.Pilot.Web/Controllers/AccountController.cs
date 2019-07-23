@@ -16,6 +16,7 @@ namespace Ascon.Pilot.Web.Controllers
     {
         private readonly ILogger<FilesController> _logger;
         private IContextHolder _contextHolder;
+        private enum _codes { Success = 0, Error };
 
         public AccountController(ILogger<FilesController> logger, IContextHolder contextHolder)
         {
@@ -40,6 +41,28 @@ namespace Ascon.Pilot.Web.Controllers
 #endif
 
             return View(logInViewModel);
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> LogInWithoutView(String login, String password)
+        {
+            var clientId = Guid.NewGuid();
+            var context = _contextHolder.NewContext(clientId);
+            try
+            {
+                var creds = Credentials.GetConnectionCredentials(ApplicationConst.Database, login, password);
+                var dbInfo = context.Connect(creds);
+                await SignInAsync(dbInfo, creds.DatabaseName, creds.ProtectedPassword, clientId, true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(1, "Не удалось подключиться к серверу", ex);
+                ModelState.AddModelError("", ex.Message);
+                return Content(_codes.Error.ToString());
+            }
+
+            return Content(_codes.Success.ToString());
         }
 
         [HttpPost]
